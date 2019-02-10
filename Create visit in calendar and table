@@ -1,0 +1,103 @@
+  var calenda = '2dgi8jbfm1o31hpddmob54h9ic@group.calendar.google.com';
+
+function createEvent() {
+  var activeS = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
+  var lastRow = activeS.getLastRow();
+  var dayType = activeS.getRange(lastRow, 3).getValue();
+  var visitTo = activeS.getRange(lastRow, 4).getValue();
+  var nameeee = activeS.getRange(lastRow, 5).getValue();
+  var lpzname = activeS.getRange(lastRow, 8).getValue();
+  var locatio = activeS.getRange(lastRow, 9).getValue();
+  var titleee = visitTo + ': ' + nameeee;
+
+  var curDate = new Date();
+  var visDate = activeS.getRange(lastRow, 2).getValue();
+  var dateDif = visDate - curDate;
+  var datDiff = dateDif/1000/60/60/24;
+  var visiDay = visDate.getDay();
+  var currDay = curDate.getDay();
+  var dayDiff = visiDay - currDay;
+  var counter = CalendarApp.getCalendarById(calenda).getEventsForDay(new Date(visDate)).length;
+  var dinnerr = 0;
+  if (counter >  7) {dinnerr =  1;}
+  if (counter > 14) {counter = 14;}
+
+  var formUrl = SpreadsheetApp.getActiveSpreadsheet().getFormUrl();
+  var dbSheet = SpreadsheetApp.openById('0AucNe1y7z6YQdG1iOXNRZXM2aFRIZkFiWmo0Q2p2LUE').getSheetByName('DB').getDataRange().getValues();
+  var lastRDB = SpreadsheetApp.openById('0AucNe1y7z6YQdG1iOXNRZXM2aFRIZkFiWmo0Q2p2LUE').getSheetByName('DB').getLastRow();
+  for (var i = 3; i < lastRDB - 4; i++) {
+    if (dbSheet[i][4] == formUrl) {
+      var emailMR = dbSheet[i][10] + ', ' + dbSheet[i][1];
+      break;
+    }
+  }
+
+  if (dateDif < 0 || visiDay == 6 || visiDay == 0 || currDay == 1 && datDiff < 6 || currDay == 2 && datDiff < 5 || currDay == 3 && datDiff < 4 || currDay == 4 && datDiff < 3 || currDay == 5 && datDiff < 2 || visDate.getYear() < curDate.getYear() || visDate.getMonth() < curDate.getMonth()) {
+    MailApp.sendEmail(emailMR, 'Запланована дата - неправильна', 'Ви не можете запланувати візит на ' + Utilities.formatDate(new Date(visDate), "GMT", "dd-MM-yyyy"));
+    var dayTpMn = activeS.getRange(lastRow, 3).setValue(dayType + '-');
+    activeS.getRange(lastRow, 1).setBackground('red');
+    activeS.hideRows(lastRow);
+  }
+  else {
+    if (dayType == 'Робочий') {
+      CalendarApp.getCalendarById(calenda).createEvent(titleee, new Date(visDate.getTime() + (1000*60*60*9) + (1000*60*60*(0.5*counter+dinnerr))), new Date(visDate.getTime() + (1000*60*60*9) + (1000*60*60*(0.5*counter+0.5+dinnerr))), {location: locatio}).setDescription(lpzname);
+    }
+    else {
+      var startDa = new Date(visDate).setHours( 9,0,0);
+      var endDate = new Date(visDate).setHours(18,0,0);
+      CalendarApp.getCalendarById(calenda).createEvent(dayType, new Date(startDa), new Date(endDate));
+    }
+  }
+}
+
+
+
+
+
+function createAllEvents() {
+  var ss = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
+  var lastRow = ss.getLastRow();
+  for (var i = 127; i < lastRow + 1; i++) {
+    var dayDate = ss.getRange(i, 2).getValue();
+    var dayType = ss.getRange(i, 3).getValue();
+    var visitTo = ss.getRange(i, 4).getValue();
+    var name = ss.getRange(i, 5).getValue();
+    var lctn = ss.getRange(i, 9).getValue();
+//    var prjct = ss.getRange(i, 10).getValue();
+    var title = visitTo + ": " + name + ". Проект: Замбон/Біофарм";
+    if ((dayType == "Робочий")||(dayType == "")) {
+      CalendarApp.getCalendarById(calenda).createEvent(
+        title, dayDate, dayDate,
+        {location: lctn});
+    }
+    else {
+      var startDate = new Date(dayDate).setHours(9,0,0);
+      var endDate = new Date(dayDate.setHours(18,0,0));
+      CalendarApp.getCalendarById(calenda).createEvent(
+        dayType, new Date(startDate), new Date(endDate));
+    }
+  }
+}
+
+function createEventOnFormSubmit() {
+  var ss = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
+  var lastRow = ss.getLastRow();
+  var dayDate = ss.getRange(lastRow, 2).getValue();
+  var dayType = ss.getRange(lastRow, 3).getValue();
+  var visitTo = ss.getRange(lastRow, 4).getValue();
+  var name = ss.getRange(lastRow, 5).getValue();
+  var lctn = ss.getRange(lastRow, 9).getValue();
+//  var prjct = ss.getRange(lastRow, 10).getValue();
+  var title = visitTo + ": " + name + ". Проект: Замбон/Біофарм";
+  if ((dayType == "Робочий")||(dayType == "")) {
+    CalendarApp.getCalendarById(calenda).createEvent(
+      title, dayDate, dayDate,
+      {location: lctn});
+  }
+  else {
+    var startDate = new Date(dayDate).setHours(9,0,0);
+    var endDate = new Date(dayDate.setHours(18,0,0));
+    CalendarApp.getCalendarById(calenda).createEvent(
+      dayType, new Date(startDate), new Date(endDate));
+  }
+}
